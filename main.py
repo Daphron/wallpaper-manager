@@ -1,3 +1,4 @@
+import os
 from os import listdir
 from os.path import isfile, join
 import fileinput
@@ -11,8 +12,11 @@ VALID_FILETYPES = ("jpg", "JPG", "png", "PNG")
 def update_images(cwd, configfile):
     files = [join(cwd,f) for f in listdir(cwd) if isfile(join(cwd,f))]
     files = ["\"" + f + "\"" for f in files if f.endswith(VALID_FILETYPES)]
-    with open(configfile, "w") as config:
-        pass
+    if not os.path.exists(configfile):
+        with open(configfile, "w") as config:
+            #create the file if it doesn't exist
+            pass
+
     with open(configfile, "r+") as config:
         for line in config:
             if line.split(",")[0] in files:
@@ -20,18 +24,18 @@ def update_images(cwd, configfile):
 
         for filepath in files:
             config.write(filepath)
-            config.write(",1") #initial rating 1
+            config.write(",100") #initial rating 100
             config.write("\n")
 
 def pick_wallpaper(configfile):
     wallpapers = []
     with open(configfile, "r") as config:
         for line in config:
-            print(line.split(","))
             filepath = line.split(",")[0]
             weight = int(line.split(",")[1])
             wallpapers += weight * [filepath]
 
+    print("Picked a new wallpaper")
     return random.choice(wallpapers)
 
 def run(configfile, curr_wallpaper_file, time_between=15):
