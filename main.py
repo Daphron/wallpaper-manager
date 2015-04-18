@@ -24,7 +24,7 @@ def update_images(cwd, configfile):
 
         for filepath in files:
             config.write(filepath)
-            config.write(",100") #initial rating 100
+            config.write(",100," + str(time.time())) #initial rating 100 then timestamp
             config.write("\n")
 
 def pick_wallpaper(configfile):
@@ -33,7 +33,9 @@ def pick_wallpaper(configfile):
         for line in config:
             filepath = line.split(",")[0]
             weight = int(line.split(",")[1])
-            wallpapers += weight * [filepath]
+            timestamp = float(line.split(",")[2])
+            if timestamp < time.time():
+                wallpapers += weight * [filepath]
 
     print("Picked a new wallpaper")
     return random.choice(wallpapers)
@@ -57,9 +59,9 @@ def __vote(ammount, curr_wallpaper_file, config_file):
 
     for line in fileinput.FileInput(config_file, inplace=1):
         if line.startswith(curr_wallpaper):
-            weight = int(line.split(",")[-1])
+            weight = int(line.split(",")[1])
             weight = max(0, weight+ammount)
-            print(",".join(line.split(",")[:-1]) + "," + str(weight))
+            print(line.split(",")[0] + "," + str(weight) + "," + ",".join(line.split(",")[2:]), end="")
         else:
             print(line, end="")
 
@@ -67,6 +69,23 @@ def upvote(ammount, curr_wallpaper_file, config_file):
     __vote(int(ammount), curr_wallpaper_file, config_file)
 def downvote(ammount, curr_wallpaper_file, config_file):
     __vote(-1*int(ammount), curr_wallpaper_file, config_file)
+
+def tired(ammount, curr_wallpaper_file, config_file):
+    curr_wallpaper = None
+    with open(curr_wallpaper_file) as fin:
+        curr_wallpaper = fin.readline()
+
+    if curr_wallpaper == None:
+        print("ERROR reading the current wallpaper file")
+        return
+
+    for line in fileinput.FileInput(config_file, inplace=1):
+        if line.startswith(curr_wallpaper):
+            timestamp = line.split(",")[2]
+            timestamp = float(timestamp)+float(ammount)*86400 #86400 s in day 
+            print(",".join(line.split(",")[:2]) + "," + str(timestamp)) 
+        else:
+            print(line, end="")
 
 
 def main(args):
@@ -77,11 +96,14 @@ def main(args):
     parser.add_argument('-w', '--currentwallpaper', help='the file that stores the current wallpaper filepath')
     parser.add_argument('--upvote', help='upvote the given wallpaper this many times')
     parser.add_argument('--downvote', help='downvote the given wallpaper this many times')
+    parser.add_argument('-t', '--tired', help="Say that you are tired of this wallpaper and don't want to see it for this many days")
     args = parser.parse_args()
 
     if not args.configfile:
         print("ERROR: Input a config file with the -c option")
         return
+    if args.tired:
+        tired(args.tired, args.currentwallpaper, args.configfile)
     if args.upvote:
         upvote(args.upvote, args.currentwallpaper, args.configfile)
     if args.downvote:
