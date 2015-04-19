@@ -1,12 +1,15 @@
+from __future__ import print_function
 import os
 from os import listdir
 from os.path import isfile, join
+import praw
 import fileinput
 import subprocess
 import time
 import random
 import sys
 import argparse
+import reddit_scraper
 VALID_FILETYPES = ("jpg", "JPG", "png", "PNG")
 
 def update_images(cwd, configfile):
@@ -87,6 +90,19 @@ def tired(ammount, curr_wallpaper_file, config_file):
         else:
             print(line, end="")
 
+def download(num_images, config_file, wallpapers_dir):
+    r = praw.Reddit(user_agent="linux:wallpaper-manager:v0.7 (by /u/daphron)")
+    args = argparse.Namespace()
+    args.limit = 5 # num submissions to look for
+    args.length = 30
+    args.subreddit = "wallpapers" #TODO defaults
+    args.output = wallpapers_dir
+    # choices=["hot", "new", "controversial", "top"], metavar="type", default="new")
+    args.sort = "top" #TODO default
+    args.score = 1
+    args.no_nsfw = True
+    args.quiet = False
+    reddit_scraper.subreddit_retrieve(r, args)
 
 def main(args):
     parser = argparse.ArgumentParser()
@@ -97,6 +113,8 @@ def main(args):
     parser.add_argument('--upvote', help='upvote the given wallpaper this many times')
     parser.add_argument('--downvote', help='downvote the given wallpaper this many times')
     parser.add_argument('-t', '--tired', help="Say that you are tired of this wallpaper and don't want to see it for this many days")
+    parser.add_argument('-d', '--download', help="How many new wallpapers per day you want to download and add to your rotation")
+    parser.add_argument('--wallpaperdir', help="Where to put newly downloaded wallpapers")
     args = parser.parse_args()
 
     if not args.configfile:
@@ -108,6 +126,11 @@ def main(args):
         upvote(args.upvote, args.currentwallpaper, args.configfile)
     if args.downvote:
         downvote(args.downvote, args.currentwallpaper, args.configfile)
+    if args.download:
+        if args.wallpaperdir:
+            download(args.download, args.configfile, args.wallpaperdir)
+        else:
+            print("MUST RUN WITH wallpaperdir if running --update")
     if args.update:
         update_images(args.update, args.configfile)
 
