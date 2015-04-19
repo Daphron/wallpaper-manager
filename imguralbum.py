@@ -144,24 +144,24 @@ if __name__ == '__main__':
 
     if len(args) == 1:
         # Print out the help message and exit:
-        print help_message
+        print(help_message)
         exit()
 
     try:
         # Fire up the class:
         downloader = ImgurAlbumDownloader(args[1])
-        print "Found %d images in album" % downloader.num_images()
+        print("Found {} images in album".format(downloader.num_images()))
 
         # Called when an image is about to download:
         def print_image_progress(index, url, dest):
-            print "Downloading Image %d" % index
-            print " %s >> %s" % (url, dest)
+            print("Downloading Image {}".format(index))
+            print(" {} >> {}".format(url, dest))
         downloader.on_image_download(print_image_progress)
 
         # Called when the downloads are all done.
         def all_done():
-            print ""
-            print "Done!"
+            print()
+            print("Done!")
         downloader.on_complete(all_done)
 
         # Work out if we have a foldername or not:
@@ -175,9 +175,9 @@ if __name__ == '__main__':
         exit()
 
     except ImgurAlbumException as e:
-        print "Error: " + e.msg
-        print ""
-        print "How to use"
-        print "============="
-        print help_message
+        print("Error: " + e.msg)
+        print()
+        print("How to use")
+        print("=============")
+        print(help_message)
         exit(1)

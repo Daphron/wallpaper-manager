@@ -41,7 +41,7 @@ def download_images(url, args):
 
         if not args.quiet:
             def image_progress(index, image_url, dest):
-                print "Downloading image {} of {} from album {} to {}".format(index, downloader.num_images(), url, dest)
+                print("Downloading image {} of {} from album {} to {}".format(index, downloader.num_images(), url, dest))
 
             downloader.on_image_download(image_progress)
         downloader.save_images(args.output)
@@ -49,7 +49,7 @@ def download_images(url, args):
         # Not an album, unfortunately.
         # or some strange error happened.
         if not e.msg.startswith("URL"):
-            print e.msg
+            print(e.msg)
             return
 
         # Check if it's a silly url.
@@ -62,7 +62,7 @@ def download_images(url, args):
             # by reading the HTML, unfortunately.
             response = urllib.urlopen(url)
             if response.getcode() != 200:
-                print "Image download failed: HTML response code {}".format(response.getcode())
+                print("Image download failed: HTML response code {}".format(response.getcode()))
                 return
 
             html = response.read()
@@ -76,7 +76,7 @@ def download_images(url, args):
 
 
         if not image_url:
-            print "Image url {} could not be properly parsed.".format(url, image)
+            print("Image url {} could not be properly parsed.".format(url, image))
             return
 
         if not os.path.exists(args.output):
@@ -85,7 +85,7 @@ def download_images(url, args):
         p = os.path.join(args.output, image.group(2))
 
         if not args.quiet:
-            print "Downloading image {} to {}".format(image_url, p)
+            print("Downloading image {} to {}".format(image_url, p))
 
         urllib.urlretrieve(image_url, p)
 
@@ -122,7 +122,7 @@ def post_retrieve(r, args):
     if(is_valid(submission, args)):
         download_images(submission.url, args)
     else:
-        print "Invalid URL given: {}".format(submission.url)
+        print("Invalid URL given: {}".format(submission.url))
 
 
 if __name__ == "__main__":

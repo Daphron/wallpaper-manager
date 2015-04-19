@@ -90,6 +90,22 @@ def tired(ammount, curr_wallpaper_file, config_file):
         else:
             print(line, end="")
 
+def remove_from_rotation(curr_wallpaper_file, config_file):
+    curr_wallpaper = None
+    with open(curr_wallpaper_file) as fin:
+        curr_wallpaper = fin.readline()
+
+    if curr_wallpaper == None:
+        print("ERROR reading the current wallpaper file")
+        return
+
+    for line in fileinput.FileInput(config_file, inplace=1):
+        if line.startswith(curr_wallpaper):
+            print(line.split(",")[0] + "," + str(0) + "," + ",".join(line.split(",")[2:]), end="")
+        else:
+            print(line, end="")
+
+
 def download(num_images, config_file, wallpapers_dir):
     r = praw.Reddit(user_agent="linux:wallpaper-manager:v0.7 (by /u/daphron)")
     args = argparse.Namespace()
@@ -115,11 +131,14 @@ def main(args):
     parser.add_argument('-t', '--tired', help="Say that you are tired of this wallpaper and don't want to see it for this many days")
     parser.add_argument('-d', '--download', help="How many new wallpapers per day you want to download and add to your rotation")
     parser.add_argument('--wallpaperdir', help="Where to put newly downloaded wallpapers")
+    parser.add_argument('--remove', help="Remove a file from rotation, making it never be your wallpaper again")
     args = parser.parse_args()
 
     if not args.configfile:
         print("ERROR: Input a config file with the -c option")
         return
+    if args.remove:
+        remove_from_rotation(args.currentwallpaper, args.configfile)
     if args.tired:
         tired(args.tired, args.currentwallpaper, args.configfile)
     if args.upvote:
