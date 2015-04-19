@@ -27,7 +27,7 @@ def update_images(cwd, configfile):
 
         for filepath in files:
             config.write(filepath)
-            config.write(",100," + str(time.time())) #initial rating 100 then timestamp
+            config.write(",100," + str(time.time()) + ",false") #initial rating 100 then timestamp, then whether "checked" as a safe wallpaper
             config.write("\n")
 
 def pick_wallpaper(configfile):
@@ -64,7 +64,7 @@ def __vote(ammount, curr_wallpaper_file, config_file):
         if line.startswith(curr_wallpaper):
             weight = int(line.split(",")[1])
             weight = max(0, weight+ammount)
-            print(line.split(",")[0] + "," + str(weight) + "," + ",".join(line.split(",")[2:]), end="")
+            print(line.split(",")[0] + "," + str(weight) + "," + ",".join(line.split(",")[2:-1]) + "," + "true")
         else:
             print(line, end="")
 
@@ -106,15 +106,15 @@ def remove_from_rotation(curr_wallpaper_file, config_file):
             print(line, end="")
 
 
-def download(num_images, config_file, wallpapers_dir):
+def download(num_images, config_file, wallpapers_dir, subreddit):
     r = praw.Reddit(user_agent="linux:wallpaper-manager:v0.7 (by /u/daphron)")
     args = argparse.Namespace()
     args.limit = num_images # num submissions to look for
     args.length = 30
-    args.subreddit = "wallpapers" #TODO defaults
+    args.subreddit = subreddit 
     args.output = wallpapers_dir
     # choices=["hot", "new", "controversial", "top"], metavar="type", default="new")
-    args.sort = "top" #TODO default
+    args.sort = "top" 
     args.score = 40
     args.no_nsfw = True
     args.quiet = False
@@ -132,6 +132,7 @@ def main(args):
     parser.add_argument('-d', '--download', help="How many new wallpapers per day you want to download and add to your rotation")
     parser.add_argument('--wallpaperdir', help="Where to put newly downloaded wallpapers")
     parser.add_argument('--remove', help="Remove a file from rotation, making it never be your wallpaper again")
+    parser.add_argument('-s', '--subreddit', help="what subreddit do you want to download from", default="wallpapers")
     args = parser.parse_args()
 
     if not args.configfile:
@@ -140,14 +141,23 @@ def main(args):
     if args.remove:
         remove_from_rotation(args.currentwallpaper, args.configfile)
     if args.tired:
+        if not args.currentwallpaper:
+            print("ERROR: INput a currentwallpaper file with the -w option")
+            return
         tired(args.tired, args.currentwallpaper, args.configfile)
     if args.upvote:
+        if not args.currentwallpaper:
+            print("ERROR: INput a currentwallpaper file with the -w option")
+            return
         upvote(args.upvote, args.currentwallpaper, args.configfile)
     if args.downvote:
+        if not args.currentwallpaper:
+            print("ERROR: INput a currentwallpaper file with the -w option")
+            return
         downvote(args.downvote, args.currentwallpaper, args.configfile)
     if args.download:
         if args.wallpaperdir:
-            download(args.download, args.configfile, args.wallpaperdir)
+            download(args.download, args.configfile, args.wallpaperdir, args.subreddit)
         else:
             print("MUST RUN WITH wallpaperdir if running --update")
     if args.update:
