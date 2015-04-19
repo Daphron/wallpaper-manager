@@ -1,4 +1,5 @@
 from __future__ import print_function
+import datetime
 import os
 from os import listdir
 from os.path import isfile, join
@@ -30,22 +31,32 @@ def update_images(cwd, configfile):
             config.write(",100," + str(time.time()) + ",false") #initial rating 100 then timestamp, then whether "checked" as a safe wallpaper
             config.write("\n")
 
-def pick_wallpaper(configfile):
+def pick_wallpaper(configfile, starttime, endtime):
+    st = datetime.datetime.strptime(starttime, "%H:%M")
+    st = st.replace(year=datetime.datetime.now().year, month=datetime.datetime.now().month, day=datetime.datetime.now().day)
+    et = datetime.datetime.strptime(endtime, "%H:%M")
+    et = et.replace(year=datetime.datetime.now().year, month=datetime.datetime.now().month, day=datetime.datetime.now().day)
     wallpapers = []
     with open(configfile, "r") as config:
         for line in config:
             filepath = line.split(",")[0]
-            weight = int(line.split(",")[1])
+            weight = max(0, int(line.split(",")[1]))
             timestamp = float(line.split(",")[2])
-            if timestamp < time.time():
-                wallpapers += weight * [filepath]
+            checked = line.split(",")[3] == True
+            if checked or (datetime.datetime.now().weekday() in (5,6)) or not (st < datetime.datetime.now() < et):
+                if timestamp < time.time():
+                    wallpapers += weight * [filepath]
 
     print("Picked a new wallpaper")
-    return random.choice(wallpapers)
+    try:
+        return random.choice(wallpapers)
+    except IndexError:
+        print("No wallpaper valid for viewing at this time, Exiting...")
+        sys.exit(0)
 
-def run(configfile, curr_wallpaper_file, time_between=15):
+def run(configfile, curr_wallpaper_file, starttime, endtime, time_between=15):
     while True:
-        wallpaper = pick_wallpaper(configfile)
+        wallpaper = pick_wallpaper(configfile, starttime, endtime)
         subprocess.Popen('feh --bg-scale ' + wallpaper, shell=True)
         with open(curr_wallpaper_file, 'w+') as curr_file:
             curr_file.write(wallpaper)
@@ -133,6 +144,8 @@ def main(args):
     parser.add_argument('--wallpaperdir', help="Where to put newly downloaded wallpapers")
     parser.add_argument('--remove', help="Remove a file from rotation, making it never be your wallpaper again")
     parser.add_argument('-s', '--subreddit', help="what subreddit do you want to download from", default="wallpapers")
+    parser.add_argument('--startwork', help='When are unchecked wallpapers not allowed to display after', default="08:30")
+    parser.add_argument('--endwork', help='When are unchecked wallpapers not allowed to display before', default="17:30")
     args = parser.parse_args()
 
     if not args.configfile:
@@ -166,7 +179,7 @@ def main(args):
     if args.run and not args.currentwallpaper:
         print("MUST RUN WITH currentwallpaper if also running with --run")
     if args.run and args.currentwallpaper:
-        run(args.configfile, args.currentwallpaper, time_between=int(args.run))
+        run(args.configfile, args.currentwallpaper, args.startwork, args.endwork, time_between=int(args.run))
 
 if __name__ == "__main__":
     main(sys.argv[1:])
