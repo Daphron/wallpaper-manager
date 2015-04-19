@@ -93,13 +93,13 @@ def tired(ammount, curr_wallpaper_file, config_file):
 def download(num_images, config_file, wallpapers_dir):
     r = praw.Reddit(user_agent="linux:wallpaper-manager:v0.7 (by /u/daphron)")
     args = argparse.Namespace()
-    args.limit = 5 # num submissions to look for
+    args.limit = num_images # num submissions to look for
     args.length = 30
     args.subreddit = "wallpapers" #TODO defaults
     args.output = wallpapers_dir
     # choices=["hot", "new", "controversial", "top"], metavar="type", default="new")
     args.sort = "top" #TODO default
-    args.score = 1
+    args.score = 40
     args.no_nsfw = True
     args.quiet = False
     reddit_scraper.subreddit_retrieve(r, args)
