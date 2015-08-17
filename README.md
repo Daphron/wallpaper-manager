@@ -5,7 +5,7 @@ Wallpaper-manager is a lightweight background management program for those who e
 ##What can it do?
 * Display a rotating series of wallpapers
 * Allows you to weight the likelyhood of seeing certain wallpapers by weight
-* Automatically download new wallpapers from image subreddits
+* Automatically download new wallpapers from image subreddits (not currently supported/working)
 
 ##How to use
 In order to display a random new wallpaper each 15 minutes run:
